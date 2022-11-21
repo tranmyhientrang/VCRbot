@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="configuration_basename" default="vcr_lds_2d.lua"/>
+  <arg name="open_rviz" default="true"/>
+  <include file="$(find vcr_bringup)/launch/vcr_remote.launch">
+  </include>
+  <!-- 启动仿真环境 -->
+  <include file="$(find vcr_gazebo)/launch/gazebo.launch"/>
+
+  <!-- SLAM: Gmapping, Cartographer, Hector, Karto, Frontier_exploration, RTAB-Map -->
+  <include file="$(find vcr_slam)/launch/vcr_karto.launch">
+    <arg name="configuration_basename" value="$(arg configuration_basename)"/>
+  </include>
+
+  <!-- 启动 rviz 的标签 -->
+  <group if="$(arg open_rviz)">
+    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vcr_slam)/rviz/vcr_karto.rviz"/>
+  </group>
+  <!-- 通过导航来实现自动建图 -->
+  <include file="$(find vcr_navigation)/launch/move_base.launch">
+  </include>
+  <node pkg="vcr_teleop" type="vcr_teleop_key" name="vcr_teleop_key" launch-prefix="xterm -e" output="screen"/>
+
+</launch>

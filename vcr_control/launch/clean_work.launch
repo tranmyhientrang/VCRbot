@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="configuration_basename" default="vcr_lds_2d.lua"/>
+    <arg name="map_file" default="$(find vcr_navigation)/maps/map_1.yaml"/>
+    <arg name="open_rviz" default="true"/>
+    <!-- 启动仿真环境 -->
+    <include file="$(find vcr_bringup)/launch/vcr_remote.launch">
+    </include>
+    <include file="$(find vcr_gazebo)/launch/gazebo.launch"/>
+    <!-- 启动导航系统，用作目标点路径规划，实现躲避小障碍物-->
+    <include file="$(find vcr_navigation)/launch/vcr_navigation.launch">
+        <arg name="map_file" value="$(arg map_file)"/>
+    </include>
+    <!-- 清扫路径规划器 -->
+    <node pkg="vcr_control" type="path_planning_node" respawn="false" name="path_planning_node" output="screen" clear_params="true">
+        <rosparam file="$(find vcr_navigation)/param/costmap_common_params.yaml" command="load" ns="cleaning_costmap" />
+        <rosparam file="$(find vcr_navigation)/param/cleaning_costmap_params.yaml" command="load" />
+    </node>
+    <param name="/NextGoal/tolerance_goal" value="0.25" />
+    <node pkg="vcr_control" type="next_goal" respawn="true" name="next_goal" output="screen" />
+</launch>
